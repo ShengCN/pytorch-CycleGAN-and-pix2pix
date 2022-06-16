@@ -613,3 +613,25 @@ class PixelDiscriminator(nn.Module):
     def forward(self, input):
         """Standard forward."""
         return self.net(input)
+
+
+class GlassNet(nn.Module):
+    def __init__(self, opt):
+        super(GlassNet, self).__init__()
+
+        self.left = define_G(3, 3, opt.ngf, opt.netG, opt.norm,
+                                      not opt.no_dropout, opt.init_type, opt.init_gain, opt.gpu_ids)
+
+        self.right = define_G(6, 3, opt.ngf, opt.netG, opt.norm,
+                                      not opt.no_dropout, opt.init_type, opt.init_gain, opt.gpu_ids)
+
+
+    def forward(self, x):
+        tmp = self.left(x)
+        tmp = torch.cat([x-tmp, x], dim=1)
+        return self.right(tmp)
+
+
+def define_GlassNet(opt, init_type, init_gain, gpu_ids):
+    net = GlassNet(opt)
+    return init_net(net, init_type, init_gain, gpu_ids)
